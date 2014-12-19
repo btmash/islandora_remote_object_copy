@@ -1,4 +1,4 @@
 islandora_remote_object_copy
 ============================
 
-Copy an Islandora Object (from remote repo)
+Copy a Fedora Object (from remote repo) to your existing Fedora Repo.

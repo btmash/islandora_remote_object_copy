@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function islandora_remote_object_copy_menu() {
+  $items = array();
+
+  return $items;
+}
