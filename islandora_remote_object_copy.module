@@ -6,5 +6,64 @@
 function islandora_remote_object_copy_menu() {
   $items = array();
 
+  $items['admin/config/development/islandora-remote-object-copy'] = array(
+    'title' => 'Islandora Remote Object Copy',
+    'description' => 'Copy a remote fedora object into your islandora fedora.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_remote_object_copy_copy_form'),
+    'access arguments' => array('administer site configuration'),
+  );
+
   return $items;
+}
+
+function islandora_remote_object_copy_copy_form($form, &$form_state) {
+  $form['fedora_url'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fedora URL',
+    '#required' => TRUE,
+  );
+
+  $form['fedora_username'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fedora Username',
+    '#required' => TRUE,
+  );
+
+  $form['fedora_password'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fedora Password',
+    '#required' => TRUE,
+  );
+
+  $form['fedora_pid'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Fedora Pid',
+    '#description' => 'The Fedora Pid to look for and copy over.',
+    '#required' => TRUE,
+  );
+}
+
+function islandora_remote_object_copy_copy_form_submit($form, &$form_state) {
+  module_load_include('inc', 'islandora', 'includes/tuque');
+  module_load_include('inc', 'islandora', 'includes/tuque_wrapper');
+
+  $values = $form_state['values'];
+  $url = $values['fedora_url'];
+  $fedora_account = new stdClass();
+  $fedora_account->user = $values['fedora_user'];
+  $fedora_account->pass = $values['fedora_password'];
+  $connection = new RepositoryConnection($url, $fedora_account->user, $fedora_account->pass);
+
+  $api = new FedoraApi($connection);
+  $repository = new FedoraRepository($api, new SimpleCache());
+  $fedora_object = $repository->getObject($values['fedora_pid']);
+  dpm($fedora_object->id, 'ID');
+  dpm($fedora_object->models, 'MODELS');
+  dpm($fedora_object->state, 'STATE');
+  foreach ($fedora_object as $datastream) {
+    dpm($fedora_object->id);
+    dpm($fedora_object->label);
+    dpm($fedora_object->mimetype);
+  }
 }
