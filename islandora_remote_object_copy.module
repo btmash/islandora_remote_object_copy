@@ -42,6 +42,13 @@ function islandora_remote_object_copy_copy_form($form, &$form_state) {
     '#description' => 'The Fedora Pid to look for and copy over.',
     '#required' => TRUE,
   );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
 }
 
 function islandora_remote_object_copy_copy_form_submit($form, &$form_state) {
@@ -51,19 +58,20 @@ function islandora_remote_object_copy_copy_form_submit($form, &$form_state) {
   $values = $form_state['values'];
   $url = $values['fedora_url'];
   $fedora_account = new stdClass();
-  $fedora_account->user = $values['fedora_user'];
+  $fedora_account->user = $values['fedora_username'];
   $fedora_account->pass = $values['fedora_password'];
-  $connection = new RepositoryConnection($url, $fedora_account->user, $fedora_account->pass);
 
+  $connection = new RepositoryConnection($url, $fedora_account->user, $fedora_account->pass);
   $api = new FedoraApi($connection);
   $repository = new FedoraRepository($api, new SimpleCache());
   $fedora_object = $repository->getObject($values['fedora_pid']);
   dpm($fedora_object->id, 'ID');
   dpm($fedora_object->models, 'MODELS');
   dpm($fedora_object->state, 'STATE');
+  dpm('DATASTREAMS:');
   foreach ($fedora_object as $datastream) {
-    dpm($fedora_object->id);
-    dpm($fedora_object->label);
-    dpm($fedora_object->mimetype);
+    dpm($datastream->id);
+    dpm($datastream->label);
+    dpm($datastream->mimetype);
   }
 }
