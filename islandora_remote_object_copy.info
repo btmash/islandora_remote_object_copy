@@ -1,4 +1,4 @@
-name = "Islandora Remote Object Copy
+name = "Islandora Remote Object Copy"
 description = "Copy a Remote Fedora Object into your Fedora Repo"
 dependencies[] = islandora
 package = Islandora
