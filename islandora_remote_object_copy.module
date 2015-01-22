@@ -298,23 +298,11 @@ function islandora_remote_object_copy_create_single_object_item($fedora_object_d
   $fedora_datastream = $fedora_object[$fedora_object_datastream->id];
   $islandora_child_object = NULL;
 
-  $mime_type = NULL;
-  if (!empty($fedora_object['RELS-INT'])) {
-    $xml = $fedora_object['RELS-INT']->content;
-    if (strpos($xml, 'rdf:about="info:fedora/' . $fedora_object->id . '/' . $fedora_datastream->id) !== FALSE) {
-      $mime_type = $fedora_datastream->mimetype;
-    }
-  }
+  $content_info = _islandora_remote_object_copy_get_content_info($fedora_object, $fedora_datastream);
 
-  // Determine content model and content datastream
-  if ($mime_type == 'application/pdf') {
-    $content_models = array(
-      'islandora:sp_pdf',
-    );
-    $content_datastream = 'OBJ';
-  }
-
-  if (!empty($content_models)) {
+  if (!empty($content_info)) {
+    $content_models = $content_info['content_models'];
+    $content_datastream = $content_info['content_datastream'];
     $namespace = explode(':', $fedora_object->id);
     $content_models[] = 'fedora-system:FedoraObject-3.0';
     $object_properties = array(
@@ -376,4 +364,47 @@ function _islandora_remote_object_copy_object_has_unique_datastreams($fedora_obj
     return true;
   }
   return false;
+}
+
+/**
+ * Returns the content models and datastream associated with a datastream.
+ */
+function _islandora_remote_object_copy_get_content_info($fedora_object, $fedora_datastream) {
+  $mime_type = NULL;
+  $content_info = NULL;
+  if (!empty($fedora_object['RELS-INT'])) {
+    $xml = $fedora_object['RELS-INT']->content;
+    if (strpos($xml, 'rdf:about="info:fedora/' . $fedora_object->id . '/' . $fedora_datastream->id) !== FALSE) {
+      $mime_type = $fedora_datastream->mimetype;
+    }
+  }
+
+  // PDF Object.
+  if (in_array($mime_type, array('application/pdf'))) {
+    $content_info = array(
+      'content_models' => array(
+        'islandora:sp_pdf',
+      ),
+      'content_datastream' => 'OBJ',
+    );
+  }
+  // Audio Object.
+  if (in_array($mime_type, array('audio/mpeg', 'audio/x-mpeg', 'audio/wav', 'audio/x-wav', 'audio/vnd.wave'))) {
+    $content_info = array(
+      'content_models' => array(
+        'islandora:sp-audioCModel',
+      ),
+      'content_datastream' => 'OBJ',
+    );
+  }
+  // Image Object.
+  if (in_array($mime_type, array('image/gif', 'image/jpeg', 'image/png')) && $fedora_datastream->id !== 'TN') {
+    $content_info = array(
+      'content_models' => array(
+        'islandora:sp_basic_image',
+      ),
+      'content_datastream' => 'OBJ',
+    );
+  }
+  return $content_info;
 }
