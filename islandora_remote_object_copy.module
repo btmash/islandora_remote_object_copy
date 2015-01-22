@@ -200,6 +200,7 @@ function islandora_remote_object_copy_batch_copy_collection_object($url, $fedora
  */
 function islandora_remote_object_copy_copy_single_object($url, $fedora_account, $parent_collection, $fedora_pid) {
   @set_time_limit(3600*6);
+  @ini_set('memory_limit', -1);
   module_load_include('inc', 'islandora', 'includes/tuque');
   module_load_include('inc', 'islandora', 'includes/tuque_wrapper');
   module_load_include('inc', 'islandora_remote_object_copy', 'includes/UncachedFedoraRepository');
