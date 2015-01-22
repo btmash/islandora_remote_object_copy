@@ -211,10 +211,7 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
   $fedora_object = $repository->getObject($fedora_pid);
   $compound = FALSE;
   if ($fedora_object['RELS-INT']) {
-    $rels_int = $fedora_object['RELS-INT']->content;
-    if (substr_count($rels_int, 'rdf:about') > 1) {
-      $compound = TRUE;
-    }
+    $compound = _islandora_remote_object_copy_object_has_unique_datastreams($fedora_object);
   }
   if ($compound) {
     $islandora_object = islandora_remote_object_copy_create_compound_object($fedora_object, $parent_collection);
@@ -222,12 +219,20 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
     $counter = 1;
     $context = array();
     foreach ($fedora_object as $datastream) {
-      $child_object = islandora_remote_object_copy_create_compound_object_item($datastream, $islandora_object, $fedora_object, $parent_collection);
+      $child_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection);
       if (!empty($child_object)) {
-        drupal_set_message(t('Created Child Islandora Object @islandora_object', array('@islandora_object' => $child_object->id)));
+        $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
+        $child_object->relationships->add('info:fedora/fedora-system:def/relations-external#', $rels_predicate, $islandora_object->id);
         islandora_compound_object_update_sequence($islandora_object->id, $child_object->id, $counter, $context);
+
         $counter++;
+        drupal_set_message(t('Created Child Islandora Object @islandora_object', array('@islandora_object' => $child_object->id)));
       }
+    }
+  }
+  else {
+    foreach ($fedora_object as $datastream) {
+      $islandora_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection);
     }
   }
 }
@@ -288,7 +293,7 @@ function islandora_remote_object_copy_create_compound_object($fedora_object, $pa
 /**
  * Creates compound object item.
  */
-function islandora_remote_object_copy_create_compound_object_item($fedora_object_datastream, $islandora_object, $fedora_object, $parent_collection) {
+function islandora_remote_object_copy_create_single_object_item($fedora_object_datastream, $fedora_object, $parent_collection) {
   $tuque = islandora_get_tuque_connection();
   $fedora_datastream = $fedora_object[$fedora_object_datastream->id];
   $islandora_child_object = NULL;
@@ -333,9 +338,7 @@ function islandora_remote_object_copy_create_compound_object_item($fedora_object
     foreach ($content_models as $content_model) {
       $islandora_child_object->relationships->add(FEDORA_MODEL_URI, 'hasModel', $content_model);
     }
-    $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
     $islandora_child_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $parent_collection);
-    $islandora_child_object->relationships->add('info:fedora/fedora-system:def/relations-external#', $rels_predicate, $islandora_object->id);
     foreach ($datastreams as $datastream) {
       if ($fedora_object[$datastream]) {
         $fedora_ds = $fedora_object[$datastream];
@@ -356,4 +359,21 @@ function islandora_remote_object_copy_create_compound_object_item($fedora_object
     islandora_add_object($islandora_child_object);
   }
   return $islandora_child_object;
+}
+
+function _islandora_remote_object_copy_object_has_unique_datastreams($fedora_object) {
+  $rels_int = $fedora_object['RELS-INT']->content;
+  $counter = 0;
+  foreach ($fedora_object as $datastream) {
+    if ($datastream->id == 'TN') {
+      continue;
+    }
+    if (strpos($xml, 'rdf:about="info:fedora/' . $fedora_object->id . '/' . $fedora_datastream->id) !== FALSE) {
+      $counter++;
+    }
+  }
+  if ($counter > 1) {
+    return true;
+  }
+  return false;
 }
