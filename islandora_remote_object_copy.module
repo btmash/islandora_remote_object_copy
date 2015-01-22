@@ -234,6 +234,7 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
   else {
     foreach ($fedora_object as $datastream) {
       $islandora_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection, TRUE);
+      drupal_set_message(t('Created Islandora Object @islandora_object', array('@islandora_object' => $islandora_object->id)));
     }
   }
 }
