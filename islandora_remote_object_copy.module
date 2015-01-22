@@ -220,7 +220,7 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
     $counter = 1;
     $context = array();
     foreach ($fedora_object as $datastream) {
-      $child_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection);
+      $child_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection, FALSE);
       if (!empty($child_object)) {
         $rels_predicate = variable_get('islandora_compound_object_relationship', 'isConstituentOf');
         $child_object->relationships->add('info:fedora/fedora-system:def/relations-external#', $rels_predicate, $islandora_object->id);
@@ -233,7 +233,7 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
   }
   else {
     foreach ($fedora_object as $datastream) {
-      $islandora_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection);
+      $islandora_object = islandora_remote_object_copy_create_single_object_item($datastream, $fedora_object, $parent_collection, TRUE);
     }
   }
 }
@@ -294,7 +294,7 @@ function islandora_remote_object_copy_create_compound_object($fedora_object, $pa
 /**
  * Creates compound object item.
  */
-function islandora_remote_object_copy_create_single_object_item($fedora_object_datastream, $fedora_object, $parent_collection) {
+function islandora_remote_object_copy_create_single_object_item($fedora_object_datastream, $fedora_object, $parent_collection, $keep_id = FALSE) {
   $tuque = islandora_get_tuque_connection();
   $fedora_datastream = $fedora_object[$fedora_object_datastream->id];
   $islandora_child_object = NULL;
@@ -317,7 +317,11 @@ function islandora_remote_object_copy_create_single_object_item($fedora_object_d
       'MODS',
       'DC'
     );
-    $islandora_child_object = $tuque->repository->constructObject($namespace[0]);
+    if ($keep_id) {
+      $islandora_child_object = $tuque->repository->constructObject($fedora_object->id);
+    } else {
+      $islandora_child_object = $tuque->repository->constructObject($namespace[0]);
+    }
     $islandora_child_object->label = $fedora_datastream->label;
     foreach ($object_properties as $property) {
       if (isset($fedora_object->$property)) {
