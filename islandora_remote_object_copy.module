@@ -261,6 +261,7 @@ function islandora_remote_object_copy_create_compound_object($fedora_object, $pa
     'MODS',
     'DC',
     'TN',
+    'POLICY',
   );
   if (empty($islandora_object)) {
     $islandora_object = $tuque->repository->constructObject($fedora_object->id);
