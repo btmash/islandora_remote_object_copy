@@ -211,6 +211,11 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
   $repository = new UncachedFedoraRepository($api, new SimpleCache());
   $fedora_object = $repository->getObject($fedora_pid);
   $compound = FALSE;
+  $collection = _islandora_remote_object_copy_object_is_collection($fedora_object);
+  if ($collection) {
+    islandora_remote_object_copy_create_collection($fedora_object, $parent_collection);
+    return;
+  }
   if ($fedora_object['RELS-INT']) {
     $compound = _islandora_remote_object_copy_object_has_unique_datastreams($fedora_object);
   }
@@ -237,6 +242,78 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
       drupal_set_message(t('Created Islandora Object @islandora_object', array('@islandora_object' => $islandora_object->id)));
     }
   }
+}
+
+/**
+ * Checks if fedora object is collection.
+ */
+function _islandora_remote_object_copy_object_is_collection($fedora_object) {
+  if (!empty($fedora_object['COLLECTION_POLICY'])) {
+    foreach ($fedora_object->models as $model) {
+      if (strpos($model, 'collection') !== FALSE) {
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Creates new fedora collection.
+ */
+function islandora_remote_object_copy_create_collection($fedora_object, $parent_collection) {
+  $object_properties = array(
+    'state',
+    'createdDate',
+    'lastModifiedDate',
+    'label',
+    'owner',
+    'logMessage',
+  );
+  $content_models = array(
+    'islandora:collectionCModel',
+    'fedora-system:FedoraObject-3.0',
+  );
+  $datastreams = array(
+    'MODS',
+    'DC',
+    'POLICY',
+    'COLLECTION_POLICY',
+  );
+
+  $islandora_object = islandora_object_load($fedora_object->id);
+  if (!empty($islandora_object)) {
+    return;
+  }
+  $islandora_object = $parent_collection->repository->constructObject($fedora_object->id);
+  $islandora_object->id = $fedora_object->id;
+  foreach ($object_properties as $property) {
+    if (isset($fedora_object->$property)) {
+      $islandora_object->$property = $fedora_object->$property;
+    }
+  }
+  foreach ($content_models as $content_model) {
+    $islandora_object->relationships->add(FEDORA_MODEL_URI, 'hasModel', $content_model);
+  }
+  $islandora_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $parent_collection);
+  foreach ($datastreams as $datastream) {
+    if ($fedora_object[$datastream]) {
+      if ($datastream == 'COLLECTION_POLICY') {
+        $parent_collection_object = islandora_object_load($parent_collection);
+        $fedora_ds = $parent_collection[$datastream];
+      }
+      else {
+        $fedora_ds = $fedora_object[$datastream];
+      }
+      $ds = $islandora_object->constructDatastream($datastream);
+      $ds->label = $fedora_ds->label;
+      $ds->mimetype = $fedora_ds->mimetype;
+      $ds->control_group = 'M';
+      $ds->setContentFromString($fedora_ds->content);
+      $islandora_object->ingestDatastream($ds);
+    }
+  }
+  islandora_add_object($islandora_object);
 }
 
 /**
