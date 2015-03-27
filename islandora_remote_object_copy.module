@@ -250,7 +250,7 @@ function islandora_remote_object_copy_copy_single_object($url, $fedora_account, 
 function _islandora_remote_object_copy_object_is_collection($fedora_object) {
   if (!empty($fedora_object['COLLECTION_POLICY'])) {
     foreach ($fedora_object->models as $model) {
-      if (strpos($model, 'collection') !== FALSE) {
+      if (stripos($model, 'collection') !== FALSE) {
         return TRUE;
       }
     }
