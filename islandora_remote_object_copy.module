@@ -285,7 +285,8 @@ function islandora_remote_object_copy_create_collection($fedora_object, $parent_
   if (!empty($islandora_object)) {
     return;
   }
-  $islandora_object = $parent_collection->repository->constructObject($fedora_object->id);
+  $tuque = islandora_get_tuque_connection();
+  $islandora_object = $tuque->repository->constructObject($fedora_object->id);
   $islandora_object->id = $fedora_object->id;
   foreach ($object_properties as $property) {
     if (isset($fedora_object->$property)) {
