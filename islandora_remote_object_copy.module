@@ -286,6 +286,7 @@ function islandora_remote_object_copy_create_collection($fedora_object, $parent_
     return;
   }
   $tuque = islandora_get_tuque_connection();
+  $parent_collection_object = islandora_object_load($parent_collection);
   $islandora_object = $tuque->repository->constructObject($fedora_object->id);
   $islandora_object->id = $fedora_object->id;
   foreach ($object_properties as $property) {
@@ -300,8 +301,7 @@ function islandora_remote_object_copy_create_collection($fedora_object, $parent_
   foreach ($datastreams as $datastream) {
     if ($fedora_object[$datastream]) {
       if ($datastream == 'COLLECTION_POLICY') {
-        $parent_collection_object = islandora_object_load($parent_collection);
-        $fedora_ds = $parent_collection[$datastream];
+        $fedora_ds = $parent_collection_object[$datastream];
       }
       else {
         $fedora_ds = $fedora_object[$datastream];
