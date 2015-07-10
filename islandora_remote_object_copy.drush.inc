@@ -9,7 +9,7 @@ function islandora_remote_object_copy_drush_command() {
   $items['islandora_remote_object_copy_copy_single_record'] = array(
     'aliases' => array('iroc-csr'),
     'description' => 'Copy single fedora object from another fedora commons repo',
-    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_FULL,
+    'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_LOGIN,
     'options' => array(
       'fedora_url' => array(
         'description' => 'URL to the other fedora repo. If not provided, will use settings via UI.',

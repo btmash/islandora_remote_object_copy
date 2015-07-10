@@ -275,11 +275,11 @@ function islandora_remote_object_copy_create_collection($fedora_object, $parent_
     'fedora-system:FedoraObject-3.0',
   );
   $datastreams = array(
-    'MODS',
     'DC',
     'POLICY',
     'COLLECTION_POLICY',
     'MARC',
+    'MODS',
   );
 
   $islandora_object = islandora_object_load($fedora_object->id);
@@ -338,11 +338,11 @@ function islandora_remote_object_copy_create_compound_object($fedora_object, $pa
     'fedora-system:FedoraObject-3.0',
   );
   $datastreams = array(
-    'MODS',
     'DC',
     'TN',
     'POLICY',
     'MARC',
+    'MODS',
   );
   if (empty($islandora_object)) {
     $islandora_object = $tuque->repository->constructObject($fedora_object->id);
@@ -397,10 +397,10 @@ function islandora_remote_object_copy_create_single_object_item($fedora_object_d
       'logMessage',
     );
     $datastreams = array(
-      'MODS',
       'DC',
       'POLICY',
       'MARC',
+      'MODS',
     );
     $label = $fedora_object->id;
     if ($keep_id) {
@@ -437,7 +437,7 @@ function islandora_remote_object_copy_create_single_object_item($fedora_object_d
     $ds = $islandora_child_object->constructDatastream($content_datastream);
     $label = $fedora_datastream->label;
     if (empty($label)) {
-      $label = $content_datastream;
+      $label = $fedora_object_datastream->id;
     }
     if (!$keep_id) {
       $label = $fedora_object_datastream->id;
